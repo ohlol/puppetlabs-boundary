@@ -200,9 +200,12 @@ module Boundary
         nil
       end
 
+      Puppet.debug("setting headers: #{headers}")
       headers.each{|k,v|
         req[k] = v
       }
+
+      Puppet.debug("fetching request")
       response = http.request(req)
 
       Puppet.debug("Response Body: #{response.body}")
