@@ -60,7 +60,7 @@ module Boundary
         body = {:name => resource[:name]}.to_pson
 
         Puppet.info("Creating meter #{resource[:name]}")
-        response = http_request(:post, url, headers, body, resource)
+        response = http_request(:post, url, headers, resource, body)
 
         body = PSON.parse(response.body)
         @meter_id = body["id"]
@@ -81,7 +81,7 @@ module Boundary
         headers = generate_headers(resource)
 
         Puppet.info("Deleting meter #{resource[:name]}")
-        response = http_request(:delete, url, headers, nil, resource)
+        response = http_request(:delete, url, headers, resource)
       rescue Exception => e
         raise Puppet::Error, "Could not delete meter #{resource[:name]}, failed with #{e}"
       end
@@ -91,7 +91,7 @@ module Boundary
       begin
         url = build_url(resource, :search)
         headers = generate_headers(resource)
-        response = http_request(:get, url, headers, nil, resource)
+        response = http_request(:get, url, headers, resource)
 
         if response
           body = PSON.parse(response.body)
@@ -107,7 +107,6 @@ module Boundary
         else
           raise Puppet::Error, "Could not get meter (nil response)!"
         end
-
       rescue Exception => e
         raise Puppet::Error, "Could not get meter #{data}, failed with #{e}"
         nil
@@ -118,7 +117,7 @@ module Boundary
       begin
         base_url = build_url(resource, :certificates)
         headers = generate_headers(resource)
-        response = http_request(:get, "#{base_url}/#{type}.pem", headers, nil, resource)
+        response = http_request(:get, "#{base_url}/#{type}.pem", headers, resource)
 
         if response
           file = "/etc/bprobe/#{type}.pem"
@@ -151,8 +150,7 @@ module Boundary
         url = build_url(resource, :tags)
         headers = generate_headers(resource)
 
-        http_request(:put, "#{url}/#{tag}", headers, "", resource)
-        end
+        http_request(:put, "#{url}/#{tag}", headers, resource, "")
       rescue Exception => e
         raise Puppet::Error, "Could not add meter tag: #{tag}, failed with #{e}"
       end
@@ -163,13 +161,13 @@ module Boundary
         url = build_url(resource, :tags)
         headers = generate_headers(resource)
 
-        http_request(:delete, "#{url}/#{tag}", headers, "", resource)
+        http_request(:delete, "#{url}/#{tag}", headers, resource, "")
       rescue Exception => e
           raise Puppet::Error, "Could not remove meter tag: #{tag}, failed with #{e}"
       end
     end
 
-    def http_request(method, url, headers, body=nil, resource)
+    def http_request(method, url, headers, resource, body=nil)
       Puppet.debug("Url: #{url}")
       Puppet.debug("Headers: #{headers.to_hash.inspect}")
       Puppet.debug("Body: #{body}")
