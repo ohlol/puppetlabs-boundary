@@ -174,7 +174,7 @@ module Boundary
 
       uri = URI(url)
 
-      if resource.include?(:proxy_addr) && resource.include?(:proxy_port)
+      if resource[:proxy_addr] && resource[:proxy_port]
         http = Net::HTTP.new(uri.host, uri.port, resource[:proxy_addr], resource[:proxy_port])
       else
         http = Net::HTTP.new(uri.host, uri.port)
