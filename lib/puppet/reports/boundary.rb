@@ -60,17 +60,17 @@ Puppet::Reports.register_report(:boundary) do
 
     }
 
-    event_json = event.to_json
-    uri = URI("https://api.boundary.com/events/#{BOUNDARY_ORG}")
+    event_pson = event.to_pson
+    uri = URI("https://api.boundary.com/#{BOUNDARY_ORG}/events")
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = true
-    http.ca_file = "#{File.dirname(__FILE__)}/cacert.pem" 
+    http.ca_file = "#{File.dirname(__FILE__)}/cacert.pem"
     http.verify_mode = OpenSSL::SSL::VERIFY_PEER
 
     begin
       timeout(10) do
         req = Net::HTTP::Post.new(uri.request_uri)
-        req.body = event_json
+        req.body = event_pson
 
         headers.each{|k,v| 
           req[k] = v 
@@ -80,6 +80,9 @@ Puppet::Reports.register_report(:boundary) do
 
         bad_response?(:post, uri.request_uri, res)
 
+        Puppet.info "Created a Boundary Annotation @ #{res["location"]}"
+       
+        res["location"]
       end
     rescue Timeout::Error
       Puppet.error "Timed out while attempting to create Boundary Event"
